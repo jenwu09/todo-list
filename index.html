@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Assignment 05</title>
+        <link rel="stylesheet" href="styles.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Seasonal To-Do List</h1>
+        <!-- drop down filter, add new event button
+             modal box for adding an event 
+             modal box for viewing an event -->
+        <select id="filter">
+            <option value="">All Seasons</option>
+            <option value="spring">Spring</option>
+            <option value="summer">Summer</option>
+            <option value="fall">Fall</option>
+            <option value="winter">Winter</option>
+            <option value="completed_task">Completed</option>
+            <option value="not_complete">Not Completed</option>
+        </select>
+        <!--add new event button-->
+        <img id="button_add_event" src="images/add_button.png"></img>
+        <!--modal box for adding event-->
+        <div id="modal_add_event" class="hidden">
+            <h2>Add New Event</h2>
+            <div id="error_message" class="hidden">Please fill out entire form</p></div>
+            <form>
+                <div>
+                    <label for="modal_add_event_title">Title:</label>
+                    <input type="text" id="modal_add_event_title">
+                </div>
+                <div>
+                    <label for="modal_add_event_season">Season:</label>
+                    <select id="modal_add_event_season">
+                        <option value="">Select a season</option>
+                        <option value="spring">Spring</option>
+                        <option value="summer">Summer</option>
+                        <option value="fall">Fall</option>
+                        <option value="winter">Winter</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="modal_add_event_content">Content:</label>
+                    <textarea id="modal_add_event_content"></textarea>                    
+                </div>
+                <div>
+                    <button id="modal_add_event_save">Save</button>
+                    <button id="modal_add_event_cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+        <!--panel for all the added items-->
+        <div id="existing_items"></div>
+        <!--panel for specific existing item-->
+        <div id="item_details" class="hidden">
+            <h2 id="detail_title"><span></span></h2>
+            <p id="detail_season" class="detail"><strong>Season: </strong><span></span></p>
+            <p id="detail_description" class="detail"><strong>Description: </strong><span></span></p>
+            <p id="detail_created" class="detail"><strong>Created: </strong><span></span></p>
+            <p id="detail_accessed" class="detail"><strong>Last Accessed: </strong><span></span></p>
+            <button id="close_details_button">Close</button>
+        </div>
+
+        <script>
+            // DOM queries for panels and buttons
+            const add_event_button = document.querySelector('#button_add_event');
+            const modal_add_event = document.querySelector('#modal_add_event');
+            const modal_add_event_save = document.querySelector('#modal_add_event_save');
+            const modal_add_event_cancel = document.getElementById('modal_add_event_cancel');
+            const existing_items_panel = document.getElementById('existing_items');
+            const item_details = document.getElementById('item_details');
+            const close_details_button = document.getElementById('close_details_button');
+            const filter_dropdown = document.getElementById('filter');
+
+            //error message for new event panel
+            const error_message = document.querySelector('#error_message');
+            //Event details DOM queries
+            const detail_title = document.querySelector('#detail_title span');
+            const detail_season = document.querySelector('#detail_season span');
+            const detail_description = document.querySelector('#detail_description span');
+            const detail_created = document.querySelector('#detail_created span');
+            const detail_accessed = document.querySelector('#detail_accessed span');
+            
+            //click specific buttons to hide panels again
+            //add new event button
+            add_event_button.onclick = function(event) {
+                //reset the content boxes;
+                reset_fill_in_boxes();
+                modal_add_event.classList.remove('hidden');            
+            }
+            //cancel event button
+            modal_add_event_cancel.onclick = function(event) {
+                event.preventDefault();
+                modal_add_event.classList.add('hidden');
+            }
+            //save event button
+            modal_add_event_save.onclick = function(event) {
+                event.preventDefault();
+                // access the title 
+                const title = document.querySelector('#modal_add_event_title').value;
+                // access the season
+                const season = document.querySelector('#modal_add_event_season').value;
+                // access the content 
+                const content = document.querySelector('#modal_add_event_content').value;
+                //access created time
+                const created_date_time = new Date().toLocaleString();
+                //if statement for not filling boxes up
+                if (title === '' || season === '' || content === '') {
+                    error_message.classList.remove('hidden');
+                }
+                else {
+                    //hide error message again
+                    error_message.classList.add('hidden');
+                    //save event info
+                    const element = document.createElement('div');
+                    element.classList.add('item');
+                    element.classList.add(season);
+                    element.innerText = title;
+                    element.style.fontSize = '18px';
+                    element.dataset.content = content;
+                    element.dataset.created_time = created_date_time;
+                    element.dataset.last_access = created_date_time;
+                    
+                    //add delete button
+                    const delete_button = document.createElement('div');
+                    delete_button.classList.add('delete_button');
+                    delete_button.classList.add('hidden');
+                    element.appendChild(delete_button);
+                    
+                    //add complete button
+                    const complete_button = document.createElement('button');
+                    complete_button.innerText = 'Mark Done';
+                    complete_button.classList.add('complete_button');
+                    complete_button.classList.add('hidden');
+                    element.appendChild(complete_button);
+
+                    // add to-do item, complete and delete button to the DOM
+                    document.getElementById('existing_items').appendChild(element);
+                    
+                    //hover over item
+                    element.onmouseover = function(event) {
+                        complete_button.classList.remove('hidden');
+                        delete_button.classList.remove('hidden');
+                    }
+                    //mouse move out of item
+                    element.onmouseout = function(event) {
+                        complete_button.classList.add('hidden');
+                        delete_button.classList.add('hidden');
+                    }
+                    //set up click handler for delete element
+                    delete_button.onclick = function(event) {
+                        event.stopPropagation();
+                        existing_items_panel.removeChild(element);
+                    }
+
+                    //set up click handler for complete element
+                    complete_button.onclick = function(event) {
+                        event.stopPropagation();
+                        if (element.classList.contains('completed_task')) {
+                            element.classList.remove('completed_task');
+                            complete_button.innerText = 'Mark Done';
+                        }
+                        else {
+                            element.classList.add('completed_task');
+                            complete_button.innerText = 'Unmark Done';
+                        }
+                    }
+
+                    // set up a click handler for element details
+                    element.onclick = function() {
+                    item_details.classList.remove('hidden');
+                    detail_title.innerText = title;
+                    detail_season.innerText = season;
+                    detail_description.innerText = content;
+                    detail_created.innerText = created_date_time;
+                    detail_accessed.innerText = new Date().toLocaleString();
+                    }
+                    //reset filter system
+                    filter_dropdown.value = '';
+                    filter_items();
+                    //hide add event panel again
+                    modal_add_event.classList.add('hidden');
+                }
+            }
+            //close item detail panel
+            close_details_button.onclick = function(event) {
+                item_details.classList.add('hidden');
+            }
+            //filter button functionality
+            filter_dropdown.onchange = function(event) {
+                filter_items();
+            }
+
+            //function to reset event detail filling in space
+            function reset_fill_in_boxes() {
+                document.querySelector('#modal_add_event_title').value = '';
+                document.querySelector('#modal_add_event_season').value = '';
+                document.querySelector('#modal_add_event_content').value = '';
+            }
+
+            //function for filter button functionality
+            function filter_items() {
+                const filter = event.currentTarget.value;
+                const all_items = document.querySelectorAll('.item');
+                for (i = 0; i < all_items.length; i++) {
+                    if (all_items[i].classList.contains(filter) || filter === "") {
+                        all_items[i].classList.remove('hidden');
+                    }
+                    else if (filter == "not_complete" && !all_items[i].classList.contains('completed_task')) {
+                        all_items[i].classList.remove('hidden');
+                    }
+                    else {
+                        all_items[i].classList.add('hidden');
+                    }
+                }
+            }
+            
+          
+        </script>
+    </body>
+</html>
